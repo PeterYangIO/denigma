@@ -462,6 +462,37 @@ ChordSuffixClassification classifyChordSuffix(
     return result;
 }
 
+std::optional<ChordSymbolClassification> classifyChordSymbol(
+    const musx::dom::MusxInstance<musx::dom::details::ChordAssign>& assignment,
+    const musx::dom::MusxInstance<musx::dom::KeySignature>& keySignature,
+    musx::dom::KeySignature::KeyContext keyContext)
+{
+    if (!assignment || !keySignature) {
+        return std::nullopt;
+    }
+    const auto root = keySignature->calcPitch(assignment->rootScaleNum, assignment->rootAlter, keyContext);
+    ChordSymbolClassification result;
+    result.root = { root.noteName, root.alteration };
+    result.rootLowerCase = assignment->rootLowerCase;
+    result.showRoot = assignment->showRoot;
+    result.suffix = assignment->showSuffix
+        ? classifyChordSuffix(assignment->getChordSuffix())
+        : classifyChordSuffix();
+    result.showSuffix = assignment->showSuffix;
+    if (assignment->showAltBass) {
+        const auto bass = keySignature->calcPitch(assignment->bassScaleNum, assignment->bassAlter, keyContext);
+        result.bass = chord::Pitch{ bass.noteName, bass.alteration };
+        result.bassLowerCase = assignment->bassLowerCase;
+        using BassPosition = musx::dom::details::ChordAssign::BassPosition;
+        switch (assignment->bassPosition) {
+        case BassPosition::AfterRoot: result.bassArrangement = chord::BassArrangement::Horizontal; break;
+        case BassPosition::UnderRoot: result.bassArrangement = chord::BassArrangement::Vertical; break;
+        case BassPosition::Subtext: result.bassArrangement = chord::BassArrangement::Diagonal; break;
+        }
+    }
+    return result;
+}
+
 std::string_view chordQualityName(chord::Quality quality)
 {
     using Quality = chord::Quality;
@@ -503,6 +534,16 @@ std::string_view chordDegreeTypeName(chord::Degree::Type type)
     case chord::Degree::Type::Add: return "add";
     case chord::Degree::Type::Remove: return "remove";
     case chord::Degree::Type::Alter: return "alter";
+    }
+    return "unknown";
+}
+
+std::string_view chordBassArrangementName(chord::BassArrangement arrangement)
+{
+    switch (arrangement) {
+    case chord::BassArrangement::Horizontal: return "horizontal";
+    case chord::BassArrangement::Vertical: return "vertical";
+    case chord::BassArrangement::Diagonal: return "diagonal";
     }
     return "unknown";
 }

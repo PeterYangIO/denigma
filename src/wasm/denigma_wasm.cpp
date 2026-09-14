@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "denigma/io/random_access_reader.h"
-#include "denigma/gap_report.h"
 #include "core/denigma.h"
 #include "core/musx_reader.h"
 #include "formats/enigmaxml/enigmaxml.h"
@@ -386,11 +385,7 @@ void convertMnx(OnlineResult& result,
     const denigma::MusxLoggerScope musxLogger(denigma::makeMusxLogCallback(context));
     const auto& input = cachedInputData(bytes, inputFormat, context, sourceName);
     denigma::formats::mnx::detail::exportJson(output, input, context);
-    const auto sourceFormat = inputFormat == InputFormat::Musx
-        ? denigma::FormatId::Musx
-        : denigma::FormatId::EnigmaXml;
-    result.gapReport = denigma::serializeGapReport(conversionResult, sourceFormat, denigma::FormatId::MnxJson,
-        { DENIGMA_NAME, DENIGMA_VERSION, denigma::gitCommit() });
+    result.gapReport = conversionResult.gapReport().value_or("");
     if (!conversionResult.hasError()) {
         appendOutput(result, {}, output.str());
     }

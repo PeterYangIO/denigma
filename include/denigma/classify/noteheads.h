@@ -23,6 +23,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "musx/musx.h"
 
@@ -85,6 +86,12 @@ NoteheadClassification classifyNoteheadSymbol(
 /// Classifies the effective notehead for a note, resolving the note's font/character
 /// via #musx::dom::NoteInfoPtr::calcNoteheadInfo.
 NoteheadClassification classifyNotehead(const musx::dom::NoteInfoPtr& note);
+
+/// Returns the stable serialized name for a classified notehead shape.
+std::string_view noteheadShapeName(notehead::Shape shape);
+
+/// Returns the stable serialized name for a classified notehead fill.
+std::string_view noteheadFillName(notehead::Fill fill);
 
 } // namespace classify
 } // namespace denigma

@@ -33,6 +33,23 @@ namespace classify {
 
 namespace chord {
 
+/// @struct Pitch
+/// @brief Diatonic pitch spelling used by a chord root or alternate bass.
+struct Pitch
+{
+    music_theory::NoteName step{ music_theory::NoteName::C };
+    int alteration{};
+};
+
+/// @enum BassArrangement
+/// @brief Visual arrangement of an alternate bass relative to the chord root.
+enum class BassArrangement
+{
+    Horizontal,
+    Vertical,
+    Diagonal
+};
+
 /// @enum Quality
 /// @brief Harmonic quality recognized in a Finale chord suffix.
 ///
@@ -140,6 +157,20 @@ struct ChordSuffixClassification
     std::string calcText() const;
 };
 
+/// @struct ChordSymbolClassification
+/// @brief Target-neutral musical and display semantics of a Finale chord assignment.
+struct ChordSymbolClassification
+{
+    chord::Pitch root;
+    bool rootLowerCase{};
+    bool showRoot{};
+    ChordSuffixClassification suffix;
+    bool showSuffix{};
+    std::optional<chord::Pitch> bass;
+    bool bassLowerCase{};
+    std::optional<chord::BassArrangement> bassArrangement;
+};
+
 /// @brief Reconstructs a Finale chord suffix as Unicode text, resolving SMuFL and known legacy-font glyphs.
 /// @param suffix The chord suffix elements, normally from `details::ChordAssign::getChordSuffix`.
 ChordSuffixClassification classifyChordSuffix(
@@ -148,11 +179,20 @@ ChordSuffixClassification classifyChordSuffix(
 /// @brief Classifies a Finale chord with no displayed suffix as a major triad.
 ChordSuffixClassification classifyChordSuffix();
 
+/// @brief Classifies a Finale chord assignment using the effective key signature.
+std::optional<ChordSymbolClassification> classifyChordSymbol(
+    const musx::dom::MusxInstance<musx::dom::details::ChordAssign>& assignment,
+    const musx::dom::MusxInstance<musx::dom::KeySignature>& keySignature,
+    musx::dom::KeySignature::KeyContext keyContext);
+
 /// @brief Returns the stable serialized name for a classified chord quality.
 std::string_view chordQualityName(chord::Quality quality);
 
 /// @brief Returns the stable serialized name for a chord-degree operation.
 std::string_view chordDegreeTypeName(chord::Degree::Type type);
+
+/// @brief Returns the stable serialized name for an alternate-bass arrangement.
+std::string_view chordBassArrangementName(chord::BassArrangement arrangement);
 
 } // namespace classify
 } // namespace denigma

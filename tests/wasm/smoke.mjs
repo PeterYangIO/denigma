@@ -13,6 +13,7 @@ import { pathToFileURL } from 'node:url';
 
 const defaultSample = resolve(import.meta.dirname, '..', 'data', 'inputs', 'voiced_parts.musx');
 const chordSample = resolve(import.meta.dirname, '..', 'data', 'inputs', 'chords.musx');
+const noteheadSample = resolve(import.meta.dirname, '..', 'data', 'inputs', 'note_shapes.musx');
 const [, , moduleArg, wasmArg, musxArg = defaultSample] = process.argv;
 if (!moduleArg || !wasmArg) {
   console.error('usage: node tests/wasm/smoke.mjs <denigma.js> <denigma.wasm> [sample.musx]');
@@ -229,26 +230,40 @@ withInput(chordInput, 'chords.musx', (dataPointer, namePointer) => {
   try {
     if (!Module._denigma_result_success(result)) throw new Error(`Chord MNX conversion failed:\n${messages(result)}`);
     const report = gapReport(result);
-    if (report.schemaVersion !== 1 || report.targetFormat !== 'mnx') {
+    if (report.schemaVersion !== 1) {
       throw new Error('Chord gap report has invalid envelope metadata.');
     }
-    if ('document' in report.source) {
-      throw new Error('WASM gap reports must not retain source evidence by default.');
-    }
-    const chordGaps = report.gaps.filter((gap) => gap.code === 'finale.chord-symbol');
-    if (!chordGaps.length || chordGaps.some((gap) => gap.payloadVersion !== 1
-      || gap.target.format !== 'mnx'
-      || gap.target.representation !== 'none'
-      || gap.target.cause !== 'target-unsupported'
-      || gap.source.recordType !== 'chordAssign'
-      || gap.payload.type !== 'chord-symbol'
-      || !gap.payload.root.step
-      || !gap.payload.anchor.partId
-      || !gap.payload.anchor.measureId)) {
-      throw new Error('Chord gap report does not contain source-located chord assignments.');
+    const chordGaps = report.gaps.filter((gap) => gap.type === 'chord-symbol');
+    if (!chordGaps.length || chordGaps.some((gap) => !gap.anchor
+      || !gap.chord.root.step
+      || !gap.position.denominator
+      || 'source' in gap
+      || 'cause' in gap)) {
+      throw new Error('Chord gap report does not contain target-anchored chord classifications.');
     }
     console.log(`MNX gap report: ${chordGaps.length} chord symbol gaps.`);
     console.log(`MNX gap example:\n${JSON.stringify(chordGaps[0], null, 2)}`);
+  } finally {
+    Module._denigma_result_destroy(result);
+  }
+});
+
+const noteheadInput = await readFile(noteheadSample);
+withInput(noteheadInput, 'note_shapes.musx', (dataPointer, namePointer) => {
+  const result = convert(dataPointer, noteheadInput.byteLength, namePointer, FORMAT_MNX);
+  try {
+    if (!Module._denigma_result_success(result)) throw new Error(`Notehead MNX conversion failed:\n${messages(result)}`);
+    const report = gapReport(result);
+    const noteheadGaps = report.gaps.filter((gap) => gap.type === 'notehead');
+    if (!noteheadGaps.length || noteheadGaps.some((gap) => !gap.anchor.startsWith('ev')
+      || !gap.notehead.shape
+      || !gap.notehead.fill
+      || 'source' in gap
+      || 'cause' in gap)) {
+      throw new Error('Notehead gap report does not contain target-anchored classifications.');
+    }
+    console.log(`MNX gap report: ${noteheadGaps.length} notehead gaps.`);
+    console.log(`MNX notehead gap example:\n${JSON.stringify(noteheadGaps[0], null, 2)}`);
   } finally {
     Module._denigma_result_destroy(result);
   }

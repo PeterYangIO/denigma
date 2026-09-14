@@ -26,7 +26,8 @@
 
 #include "smufl_mapping.h"
 
-namespace denigma::classify {
+namespace denigma {
+namespace classify {
 
 using namespace notehead;
 
@@ -163,4 +164,31 @@ NoteheadClassification classifyNotehead(const musx::dom::NoteInfoPtr& note)
     return result;
 }
 
-} // namespace denigma::classify
+std::string_view noteheadShapeName(notehead::Shape shape)
+{
+    switch (shape) {
+    case notehead::Shape::Unclassified: return "unclassified";
+    case notehead::Shape::Other: return "other";
+    case notehead::Shape::Null: return "null";
+    case notehead::Shape::Regular: return "regular";
+    case notehead::Shape::X: return "x";
+    case notehead::Shape::Diamond: return "diamond";
+    case notehead::Shape::SmallSlash: return "small-slash";
+    case notehead::Shape::LargeSlash: return "large-slash";
+    case notehead::Shape::Circled: return "circled";
+    }
+    return "unclassified";
+}
+
+std::string_view noteheadFillName(notehead::Fill fill)
+{
+    switch (fill) {
+    case notehead::Fill::Unspecified: return "unspecified";
+    case notehead::Fill::Filled: return "filled";
+    case notehead::Fill::Unfilled: return "unfilled";
+    }
+    return "unspecified";
+}
+
+} // namespace classify
+} // namespace denigma

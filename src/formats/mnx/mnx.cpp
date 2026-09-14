@@ -28,6 +28,7 @@
 #include "mnx.h"
 #include "core/element_ids.h"
 #include "core/musx_reader.h"
+#include "mnx_gaps.h"
 #include "utils/stringutils.h"
 
 using namespace musx::dom;
@@ -258,7 +259,6 @@ static std::unique_ptr<mnxdom::Document> createMnxDocument(const CommandInputDat
     createParts(context);
     finalizeArpeggios(context);
     finalizeJumpTies(context);
-    reportUnsupportedChordSymbols(context);
     // Split-instrument parts need time-varying layout sources; skip scores/layouts until MNX has a stable model for that.
     if (!denigmaContext.mnxSplitInstruments) {
         createLayouts(context); // must come after createParts
@@ -268,6 +268,7 @@ static std::unique_ptr<mnxdom::Document> createMnxDocument(const CommandInputDat
         denigmaContext.logMessage(LogMsg() << "discarded " << context->discardedCueFrames
             << " cue frames because MNX does not currently support cues.", MessageSeverity::Verbose);
     }
+    finalizeGapReport(context);
 
     return std::move(context->mnxDocument);
 }

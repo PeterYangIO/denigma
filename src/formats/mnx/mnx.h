@@ -95,6 +95,7 @@ struct MnxMusxMapping
     // musx mappings
     std::unordered_map<std::string, mnxdom::json_pointer> noteJsonById;
     std::unordered_map<EntryNumber, EntryTarget> entryTargetByNumber;
+    json gaps = json::array();
 
     struct DeferredJumpTie {
         std::string startNoteId;
@@ -203,7 +204,6 @@ inline std::string calcPercussionSoundId(const MusxInstance<others::PercussionNo
 void createLayouts(const MnxMusxMappingPtr& context);
 void createGlobal(const MnxMusxMappingPtr& context);
 void createParts(const MnxMusxMappingPtr& context);
-void reportUnsupportedChordSymbols(const MnxMusxMappingPtr& context);
 void createSequences(const MnxMusxMappingPtr& context,
     mnxdom::part::Measure& mnxMeasure,
     std::optional<int> mnxStaffNumber,
