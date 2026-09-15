@@ -131,7 +131,7 @@ TEST(ConverterApi, MusxToMnxJsonReportsChordSymbolGaps)
     EXPECT_EQ(gap["position"]["numerator"], 0);
     EXPECT_EQ(gap["position"]["denominator"], 1);
     EXPECT_EQ(gap["chord"]["root"]["step"], "C");
-    EXPECT_EQ(gap["chord"]["quality"], "major");
+    EXPECT_EQ(gap["chord"]["suffix"]["quality"], "major");
     EXPECT_FALSE(gap.contains("source"));
     EXPECT_FALSE(gap.contains("cause"));
 }
