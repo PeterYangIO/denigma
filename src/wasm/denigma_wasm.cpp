@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "denigma/io/random_access_reader.h"
+#include "denigma/gap_report.h"
 #include "core/denigma.h"
 #include "core/musx_reader.h"
 #include "formats/enigmaxml/enigmaxml.h"
@@ -373,7 +374,9 @@ void convertMnx(OnlineResult& result,
                 int cueLayer)
 {
     denigma::ConversionResult conversionResult;
+    denigma::GapCollector gapCollector;
     auto context = makeConversionContext(result, sourceName, inputFormat, conversionResult);
+    context.gapCollector = &gapCollector;
     context.includeTempoTool = includeTempo;
     context.mnxSplitInstruments = splitInstruments;
     context.indentSpaces = indentSpaces < 0 ? std::nullopt : std::optional<int>(indentSpaces);
@@ -385,7 +388,8 @@ void convertMnx(OnlineResult& result,
     const denigma::MusxLoggerScope musxLogger(denigma::makeMusxLogCallback(context));
     const auto& input = cachedInputData(bytes, inputFormat, context, sourceName);
     denigma::formats::mnx::detail::exportJson(output, input, context);
-    result.gapReport = conversionResult.gapReport().value_or("");
+    result.gapReport = denigma::serializeGapReport(
+        gapCollector, { DENIGMA_NAME, DENIGMA_VERSION, denigma::gitCommit() });
     if (!conversionResult.hasError()) {
         appendOutput(result, {}, output.str());
     }

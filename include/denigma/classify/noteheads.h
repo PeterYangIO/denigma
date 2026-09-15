@@ -77,6 +77,12 @@ struct NoteheadClassification
     /// Returns true when the source was recognized as a notehead.
     explicit operator bool() const noexcept
     { return shape != notehead::Shape::Unclassified; }
+
+    /// Returns true when this classification changes the notehead MNX would infer from the note duration.
+    bool calcOverridesDefault(musx::dom::NoteType noteType) const noexcept;
+
+    /// Returns true when the classified fill changes the fill inferred from the note duration.
+    bool calcFillOverridesDefault(musx::dom::NoteType noteType) const noexcept;
 };
 
 /// Classifies a notehead symbol from a font and character code.

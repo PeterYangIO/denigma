@@ -10,6 +10,7 @@ add_executable(denigma_wasm denigma_wasm.cpp)
 target_compile_options(denigma_wasm PRIVATE ${DENIGMA_WARNING_OPTIONS})
 target_link_libraries(denigma_wasm PRIVATE
     denigma::enigmaxml
+    denigma::gap-report
     denigma::mnx
     denigma::musicxml
     denigma_internal_deps

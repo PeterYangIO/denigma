@@ -548,5 +548,30 @@ std::string_view chordBassArrangementName(chord::BassArrangement arrangement)
     return "unknown";
 }
 
+std::string_view chordPitchStepName(music_theory::NoteName step)
+{
+    using NoteName = music_theory::NoteName;
+    switch (step) {
+    case NoteName::A: return "A";
+    case NoteName::B: return "B";
+    case NoteName::C: return "C";
+    case NoteName::D: return "D";
+    case NoteName::E: return "E";
+    case NoteName::F: return "F";
+    case NoteName::G: return "G";
+    }
+    return "unknown";
+}
+
+std::string_view chordSuffixStringPositionName(chord::SuffixString::Position position)
+{
+    switch (position) {
+    case chord::SuffixString::Position::Inline: return "inline";
+    case chord::SuffixString::Position::Above: return "above";
+    case chord::SuffixString::Position::Below: return "below";
+    }
+    return "inline";
+}
+
 } // namespace classify
 } // namespace denigma

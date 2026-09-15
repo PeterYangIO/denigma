@@ -95,7 +95,6 @@ struct MnxMusxMapping
     // musx mappings
     std::unordered_map<std::string, mnxdom::json_pointer> noteJsonById;
     std::unordered_map<EntryNumber, EntryTarget> entryTargetByNumber;
-    json gaps = json::array();
 
     struct DeferredJumpTie {
         std::string startNoteId;

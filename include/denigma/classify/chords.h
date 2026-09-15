@@ -194,5 +194,11 @@ std::string_view chordDegreeTypeName(chord::Degree::Type type);
 /// @brief Returns the stable serialized name for an alternate-bass arrangement.
 std::string_view chordBassArrangementName(chord::BassArrangement arrangement);
 
+/// @brief Returns the stable serialized name for a diatonic chord pitch step.
+std::string_view chordPitchStepName(music_theory::NoteName step);
+
+/// @brief Returns the stable serialized name for a chord-suffix string position.
+std::string_view chordSuffixStringPositionName(chord::SuffixString::Position position);
+
 } // namespace classify
 } // namespace denigma

@@ -18,32 +18,22 @@
  */
 #pragma once
 
-#include <optional>
-#include <string_view>
+#include <string>
 
-#include "denigma/classify/noteheads.h"
+#include "denigma/gaps.h"
 
 namespace denigma {
-namespace formats {
-namespace mnx {
-namespace detail {
 
-struct MnxMusxMapping;
+/// @struct GapReportProducer
+/// @brief Identifies the software that serialized a gap report.
+struct GapReportProducer
+{
+    std::string name;
+    std::string version;
+    std::string commit;
+};
 
-void reportChordSymbolGaps(
-    const std::shared_ptr<MnxMusxMapping>& context,
-    std::string_view measureId,
-    std::optional<int> staff,
-    const musx::dom::MusxInstance<musx::dom::others::Measure>& musxMeasure,
-    musx::dom::StaffCmper staffId);
+/// Serializes a collector as JSON, including an empty `gaps` array when no gaps were collected.
+std::string serializeGapReport(const GapCollector& collector, const GapReportProducer& producer);
 
-void reportNoteheadGap(
-    const std::shared_ptr<MnxMusxMapping>& context,
-    std::string_view noteId,
-    const classify::NoteheadClassification& classification,
-    musx::dom::NoteType noteType);
-
-} // namespace detail
-} // namespace mnx
-} // namespace formats
 } // namespace denigma

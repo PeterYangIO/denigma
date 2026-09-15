@@ -268,8 +268,6 @@ static std::unique_ptr<mnxdom::Document> createMnxDocument(const CommandInputDat
         denigmaContext.logMessage(LogMsg() << "discarded " << context->discardedCueFrames
             << " cue frames because MNX does not currently support cues.", MessageSeverity::Verbose);
     }
-    finalizeGapReport(context);
-
     return std::move(context->mnxDocument);
 }
 

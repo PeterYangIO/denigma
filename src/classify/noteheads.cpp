@@ -164,6 +164,18 @@ NoteheadClassification classifyNotehead(const musx::dom::NoteInfoPtr& note)
     return result;
 }
 
+bool NoteheadClassification::calcFillOverridesDefault(musx::dom::NoteType noteType) const noexcept
+{
+    const bool defaultsToFilled = musx::dom::Edu(noteType) <= musx::dom::Edu(musx::dom::NoteType::Quarter);
+    return (fill == notehead::Fill::Filled && !defaultsToFilled)
+        || (fill == notehead::Fill::Unfilled && defaultsToFilled);
+}
+
+bool NoteheadClassification::calcOverridesDefault(musx::dom::NoteType noteType) const noexcept
+{
+    return shape != notehead::Shape::Regular || calcFillOverridesDefault(noteType);
+}
+
 std::string_view noteheadShapeName(notehead::Shape shape)
 {
     switch (shape) {

@@ -30,7 +30,9 @@
 
 #include "gtest/gtest.h"
 
+#include "core/denigma.h"
 #include "denigma/formats/mnx.h"
+#include "denigma/gap_report.h"
 #include "denigma/io/random_access_reader.h"
 #include "test_utils.h"
 
@@ -113,11 +115,14 @@ TEST(ConverterApi, MusxToMnxJsonReportsChordSymbolGaps)
     denigma::formats::mnx::Options options;
     options.common.sourceName = "chords.musx";
     options.common.validate = false;
+    denigma::GapCollector collector;
+    options.common.gapCollector = &collector;
 
     const auto result = denigma::formats::mnx::MusxToMnxJsonConverter{}.convert(input, output, options);
 
-    ASSERT_TRUE(result.gapReport().has_value());
-    const auto report = nlohmann::json::parse(*result.gapReport());
+    EXPECT_TRUE(result);
+    const auto report = nlohmann::json::parse(denigma::serializeGapReport(
+        collector, { "denigma", "TEST", "abc123" }));
     EXPECT_EQ(report["schemaVersion"], 1);
     ASSERT_FALSE(report["gaps"].empty());
     const auto& gap = report["gaps"].front();
@@ -140,11 +145,14 @@ TEST(ConverterApi, MusxToMnxJsonReportsNoteheadGaps)
     denigma::formats::mnx::Options options;
     options.common.sourceName = "note_shapes.musx";
     options.common.validate = false;
+    denigma::GapCollector collector;
+    options.common.gapCollector = &collector;
 
     const auto result = denigma::formats::mnx::MusxToMnxJsonConverter{}.convert(input, output, options);
 
-    ASSERT_TRUE(result.gapReport().has_value());
-    const auto report = nlohmann::json::parse(*result.gapReport());
+    EXPECT_TRUE(result);
+    const auto report = nlohmann::json::parse(denigma::serializeGapReport(
+        collector, { "denigma", "TEST", "abc123" }));
     const auto notehead = std::find_if(report["gaps"].begin(), report["gaps"].end(), [](const auto& gap) {
         return gap.value("type", "") == "notehead";
     });
@@ -152,6 +160,32 @@ TEST(ConverterApi, MusxToMnxJsonReportsNoteheadGaps)
     EXPECT_TRUE(notehead->at("anchor").get<std::string>().starts_with("ev"));
     EXPECT_FALSE(notehead->at("notehead").at("shape").get<std::string>().empty());
     EXPECT_FALSE(notehead->contains("source"));
+}
+
+TEST(ConverterApi, CliWritesReferenceGapReports)
+{
+    setupTestDataPaths();
+
+    const auto checkFixture = [](const std::string& fileName) {
+        const auto inputPath = getInputPath() / fileName;
+        auto outputPath = getOutputPath() / std::filesystem::path(fileName).replace_extension(".mnx");
+        ArgList args = { DENIGMA_NAME, "export", pathString(inputPath), "--mnx", pathString(outputPath),
+            "--gap-report", "--force" };
+        EXPECT_EQ(denigmaTestMain(args.argc(), args.argv()), 0);
+
+        outputPath += ".gaps.json";
+        nlohmann::json actual;
+        openJson(outputPath, actual);
+        actual["producer"]["commit"] = "<commit>";
+
+        auto referencePath = getInputPath() / "reference" / std::filesystem::path(fileName).replace_extension(".mnx.gaps.json");
+        nlohmann::json expected;
+        openJson(referencePath, expected);
+        EXPECT_EQ(actual, expected);
+    };
+
+    checkFixture("chords.musx");
+    checkFixture("note_shapes.musx");
 }
 
 TEST(ConverterApi, EnigmaXmlToMnxJsonCollectsErrorDiagnosticsForInvalidXml)

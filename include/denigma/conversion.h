@@ -42,6 +42,8 @@
 /// @brief Core public API for the Denigma conversion libraries.
 namespace denigma {
 
+class GapCollector;
+
 /// @enum FormatId
 /// @brief Stable identifiers for converter input and output formats.
 enum class FormatId
@@ -86,6 +88,8 @@ struct CommonOptions
     bool quiet{ false };
     /// Every source font will be available in the environment that reads the converted output.
     bool allFontsAvailable{ false };
+    /// Optional non-owning destination for typed conversion gaps. Null disables gap collection.
+    GapCollector* gapCollector{};
     /// Optional callback that receives converter log messages. Defaults to no-op.
     std::function<void(MessageSeverity severity, std::string_view message)> logCallback = [](MessageSeverity, std::string_view) {};
 };
@@ -142,21 +146,8 @@ public:
         m_diagnostics.push_back(std::move(diagnostic));
     }
 
-    /// Returns a target-specific structured gap report when the converter produced one.
-    [[nodiscard]] const std::optional<std::string>& gapReport() const noexcept
-    {
-        return m_gapReport;
-    }
-
-    /// Stores a target-specific structured gap report.
-    void setGapReport(std::string report)
-    {
-        m_gapReport = std::move(report);
-    }
-
 private:
     std::vector<Diagnostic> m_diagnostics;
-    std::optional<std::string> m_gapReport;
     bool m_hasError{};
 };
 

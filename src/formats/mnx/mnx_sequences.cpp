@@ -307,7 +307,7 @@ static void createNote(const MnxMusxMappingPtr& context, mnxdom::sequence::Event
     mnxNote.set_id(noteId);
     context->noteJsonById.emplace(noteId, mnxNote.pointer());
     const auto noteType = std::get<0>(musxEntry->calcDurationInfo());
-    reportNoteheadGap(context, noteId, classify::classifyNotehead(musxNote), Edu(noteType) <= Edu(NoteType::Quarter));
+    reportNoteheadGap(context, noteId, classify::classifyNotehead(musxNote), noteType);
     if (musxNote->crossStaff && !mnxEvent.staff()) { // createEvent already handled cross-staffing if the entire entry is crossed
         StaffCmper noteStaff = musxNote.calcStaff();
         if (const auto& mnxNoteStaff = context->mnxPartStaffFromStaff(noteStaff)) {

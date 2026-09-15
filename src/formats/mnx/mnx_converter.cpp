@@ -50,6 +50,7 @@ DenigmaContext makeMnxContext(const Options& options, const std::filesystem::pat
     context.mnxSchema = options.schema;
     context.includeTempoTool = options.includeTempoTool;
     context.mnxSplitInstruments = options.splitInstruments;
+    context.gapCollector = options.common.gapCollector;
     return context;
 }
 

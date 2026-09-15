@@ -29,6 +29,8 @@
 #include "gtest/gtest.h"
 
 #include "denigma/conversion.h"
+#include "denigma/gap_report.h"
+#include "denigma/gaps.h"
 
 namespace {
 
@@ -111,13 +113,34 @@ TEST(ConversionResult, TracksDiagnosticsAndErrorState)
     EXPECT_EQ(result.diagnostics().back().message, "error");
 }
 
-TEST(ConversionResult, PreservesTargetSpecificGapReport)
+TEST(GapCollector, PreservesTypedGaps)
 {
-    denigma::ConversionResult result;
-    EXPECT_FALSE(result.gapReport().has_value());
-    result.setGapReport(R"json({"schemaVersion":1,"gaps":[]})json");
-    ASSERT_TRUE(result.gapReport().has_value());
-    EXPECT_EQ(*result.gapReport(), R"json({"schemaVersion":1,"gaps":[]})json");
+    denigma::GapCollector collector;
+    denigma::classify::ChordSymbolClassification chord;
+    collector.add({ "P1.m1", 1, denigma::GapPosition{ 1, 4 } }, chord);
+
+    ASSERT_EQ(collector.gaps().size(), 1u);
+    EXPECT_EQ(collector.gaps().front().anchor.id, "P1.m1");
+    EXPECT_TRUE(std::holds_alternative<denigma::classify::ChordSymbolClassification>(
+        collector.gaps().front().payload));
+}
+
+TEST(GapCollector, SerializesEmptyAndStructuredReports)
+{
+    denigma::GapCollector collector;
+    const denigma::GapReportProducer producer{ "denigma", "TEST", "abc123" };
+    const auto empty = denigma::serializeGapReport(collector, producer);
+    EXPECT_NE(empty.find("\"gaps\": []"), std::string::npos);
+
+    denigma::classify::ChordSymbolClassification chord;
+    chord.suffix.strings.push_back({ "6", denigma::classify::chord::SuffixString::Position::Above });
+    chord.suffix.strings.push_back({ "9", denigma::classify::chord::SuffixString::Position::Below });
+    collector.add({ "P1.m1", std::nullopt, denigma::GapPosition{ 0, 1 } }, std::move(chord));
+
+    const auto report = denigma::serializeGapReport(collector, producer);
+    EXPECT_NE(report.find("\"position\": \"above\""), std::string::npos);
+    EXPECT_NE(report.find("\"position\": \"below\""), std::string::npos);
+    EXPECT_EQ(report.find("\"quality\": null"), std::string::npos);
 }
 
 TEST(ConverterRegistry, CollectsOwnedSingleOutputAndDiagnostics)
